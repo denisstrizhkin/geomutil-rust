@@ -107,9 +107,13 @@ impl Point2D {
         Point2D { x, y }
     }
 
-    pub fn length(self) -> f32 {
+    pub fn length_squared(self) -> f32 {
         let m = self * self;
-        (m.x + m.y).sqrt()
+        m.x + m.y
+    }
+
+    pub fn length(self) -> f32 {
+        self.length_squared().sqrt()
     }
 
     pub fn distance(self, other: Point2D) -> f32 {
@@ -117,9 +121,7 @@ impl Point2D {
     }
 
     pub fn distance_squared(self, other: Point2D) -> f32 {
-        let s = self - other;
-        let m = s * s;
-        m.x + m.y
+        (self - other).length_squared()
     }
 
     pub fn rotate(&self, angle: f32) -> Point2D {

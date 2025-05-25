@@ -2,6 +2,10 @@
 name = "geomutil"
 version = "0.1.0"
 edition = "2024"
+description = "A Rust library providing geometric functions, including triangulation and alpha shape algorithms."
+license = "AGPL-3.0-or-later"
+repository = "https://github.com/denisstrizhkin/geomutil-rust"
+keywords = ["geometry", "triangulation", "alpha-shape", "computational-geometry"]
 
 [dependencies]
 serde = { workspace = true }

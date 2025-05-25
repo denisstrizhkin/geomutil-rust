@@ -3,26 +3,33 @@ use geomutil_util::{Edge2D, Point2D, Shape2D, Triangle2D};
 use std::collections::{HashMap, VecDeque};
 
 struct AlphaShape2D {
+    alpha: f32,
     triangles: Vec<Triangle2D>,
-    connections: HashMap<usize, [Option<usize>; 3]>,
+    connections: Vec<[Option<usize>; 3]>,
 }
 
 impl AlphaShape2D {
-    fn new(triangles: Vec<Triangle2D>) -> Self {
+    fn new(triangles: Vec<Triangle2D>, alpha: f32) -> Self {
         Self {
+            alpha,
             triangles,
-            connections: HashMap::new(),
+            connections: Vec::new(),
         }
     }
 
-    fn prune(&mut self, alpha: f32) {
-        let r_sq = (1.0 / alpha) * (1.0 / alpha);
-        self.triangles
-            .retain(|t| t.circumcircle_radius_squared().unwrap() <= r_sq);
+    fn prune(&mut self) {
+        let r_sq = (1.0 / self.alpha) * (1.0 / self.alpha);
+        for i in (0..self.triangles.len()).rev() {
+            if self.triangles[i].circumcircle_radius_squared() <= r_sq {
+                self.triangles.swap_remove(i);
+            }
+        }
+        self.connections = vec![[None; 3]; self.triangles.len()];
     }
 
     fn build_connections_graph(&mut self) {
-        let mut adjacent_edges: HashMap<Edge2D, [Option<usize>; 2]> = HashMap::new();
+        let mut adjacent_edges: HashMap<Edge2D, [Option<usize>; 2]> =
+            HashMap::with_capacity(self.triangles.len() * 2);
         for (i, t) in self.triangles.iter().enumerate() {
             for e in t.edges() {
                 let e = e.canonical();
@@ -32,26 +39,24 @@ impl AlphaShape2D {
                     .or_insert([Some(i), None]);
             }
         }
-        for (_, neighbours) in adjacent_edges {
+        for (_, neighbours) in adjacent_edges.drain() {
             for (i, j) in [
                 (neighbours[0], neighbours[1]),
                 (neighbours[1], neighbours[0]),
             ] {
-                if let (Some(i), Some(j)) = (i, j) {
-                    self.connections
-                        .entry(i)
-                        .and_modify(|adjacent: &mut _| {
-                            if let Some(neigh) = adjacent.iter_mut().find(|a| a.is_none()) {
-                                neigh.replace(j);
-                            }
-                        })
-                        .or_insert([Some(j), None, None]);
+                if let Some(i) = i {
+                    let mut adjacent = self.connections[i];
+                    if let Some(neigh) = adjacent.iter_mut().find(|a| a.is_none()) {
+                        *neigh = j;
+                    }
                 }
             }
         }
     }
 
-    fn shapes(&self) -> Vec<Shape2D> {
+    fn shapes(&mut self) -> Vec<Shape2D> {
+        self.prune();
+        self.build_connections_graph();
         let mut queue = VecDeque::new();
         let mut visited = vec![false; self.triangles.len()];
         let mut shapes = Vec::new();
@@ -63,8 +68,8 @@ impl AlphaShape2D {
             let mut shape = Vec::new();
             while let Some(i) = queue.pop_front() {
                 visited[i] = true;
-                shape.push(self.triangles[i]);
-                for neigh_i in self.connections[&i].into_iter().flatten() {
+                shape.push(self.triangles[i].clone());
+                for neigh_i in self.connections[i].into_iter().flatten() {
                     if !visited[neigh_i] {
                         queue.push_back(neigh_i);
                     }
@@ -78,9 +83,7 @@ impl AlphaShape2D {
 
 pub fn alpha_shape_2d(points: &[Point2D], alpha: f32) -> Option<Vec<Shape2D>> {
     let triangulation = triangulate(points)?;
-    let mut alpha_shape = AlphaShape2D::new(triangulation.triangles);
-    alpha_shape.prune(alpha);
-    alpha_shape.build_connections_graph();
+    let mut alpha_shape = AlphaShape2D::new(triangulation.triangles, alpha);
     let shapes = alpha_shape.shapes();
     Some(shapes)
 }

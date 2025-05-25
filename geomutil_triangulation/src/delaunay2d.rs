@@ -9,29 +9,29 @@ pub struct Triangulation2D {
 impl Triangulation2D {
     fn new(bounding_triangle: Triangle2D) -> Self {
         Self {
-            bounding_triangle,
+            bounding_triangle: bounding_triangle.clone(),
             triangles: vec![bounding_triangle],
         }
     }
 
     fn add(&mut self, point: Point2D) {
-        let mut edges = HashMap::new();
-        for t in self
-            .triangles
-            .iter()
-            .filter(|t| t.is_inside_circumcircle(point).unwrap())
-        {
-            for e in t.edges() {
-                let e = e.canonical();
-                *edges.entry(e).or_insert(0) += 1;
+        let mut triangles_to_keep = Vec::with_capacity(self.triangles.len());
+        let mut triangles_to_add_edges = HashMap::with_capacity(self.triangles.len() * 2);
+        for t in self.triangles.drain(..) {
+            if t.is_inside_circumcircle(point) {
+                for e in t.edges() {
+                    let canonical_edge = e.canonical();
+                    *triangles_to_add_edges.entry(canonical_edge).or_insert(0) += 1;
+                }
+            } else {
+                triangles_to_keep.push(t);
             }
         }
-        self.triangles
-            .retain(|t| !t.is_inside_circumcircle(point).unwrap());
-        let new_triangles = edges
+        self.triangles = triangles_to_keep;
+        let new_triangles = triangles_to_add_edges
             .into_iter()
             .filter(|(_, c)| c.eq(&1))
-            .map(|(e, _)| Triangle2D::new(e.a, e.b, point));
+            .map(|(e, _)| Triangle2D::new(e.a, e.b, point).unwrap());
         self.triangles.extend(new_triangles);
     }
 
@@ -44,11 +44,11 @@ impl Triangulation2D {
     }
 }
 
-fn get_bounding_triangle(points: &[Point2D]) -> Triangle2D {
-    let (lower_bound, upper_bound) = points_bounding_box(points).unwrap();
+fn get_bounding_triangle(points: &[Point2D]) -> Option<Triangle2D> {
+    let (lower_bound, upper_bound) = points_bounding_box(points)?;
     let d = upper_bound - lower_bound;
     let d = 3.0 * d.x.max(d.y);
-    let center = points_average(&[lower_bound, upper_bound]).unwrap();
+    let center = points_average(&[lower_bound, upper_bound])?;
     Triangle2D::new(
         Point2D::new(center.x - 0.866 * d, center.y - 0.5 * d),
         Point2D::new(center.x + 0.866 * d, center.y - 0.5 * d),
@@ -61,7 +61,7 @@ pub fn triangulate(points: &[Point2D]) -> Option<Triangulation2D> {
     if points.len() < 3 {
         return None;
     }
-    let bounding_triangle = get_bounding_triangle(&points);
+    let bounding_triangle = get_bounding_triangle(&points)?;
     let mut triangulation = Triangulation2D::new(bounding_triangle);
     for point in points {
         triangulation.add(point);
@@ -109,8 +109,8 @@ mod tests {
         // T1: (0,0), (10,0), (0,10)
         // T2: (10,0), (10,10), (0,10)
 
-        let t1 = triangulation.triangles[0];
-        let t2 = triangulation.triangles[1];
+        let t1 = &triangulation.triangles[0];
+        let t2 = &triangulation.triangles[1];
 
         // Check if the two triangles cover all original points
         let mut all_points_in_triangulation = std::collections::HashSet::new();

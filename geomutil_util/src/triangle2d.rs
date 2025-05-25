@@ -1,21 +1,31 @@
 use crate::{EPS, Edge2D, Point2D};
 use serde::{Deserialize, Serialize};
 
-#[derive(
-    Debug, Default, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, Hash, Serialize, Deserialize,
-)]
+#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Triangle2D {
     pub a: Point2D,
     pub b: Point2D,
     pub c: Point2D,
+    circumcenter: Point2D,
+    circumradius_squared: f32,
 }
 
+impl Eq for Triangle2D {}
+
 impl Triangle2D {
-    pub fn new(a: Point2D, b: Point2D, c: Point2D) -> Self {
-        Self { a, b, c }
+    pub fn new(a: Point2D, b: Point2D, c: Point2D) -> Option<Self> {
+        let mut t = Self {
+            a,
+            b,
+            c,
+            ..Default::default()
+        };
+        t.circumcenter = t.calc_circumcenter()?;
+        t.circumradius_squared = t.calc_circumradius_squared();
+        Some(t)
     }
 
-    pub fn circumcenter(&self) -> Option<Point2D> {
+    fn calc_circumcenter(&self) -> Option<Point2D> {
         let a = self.a;
         let b = self.b;
         let c = self.c;
@@ -35,19 +45,25 @@ impl Triangle2D {
         Some(Point2D::new(ux, uy))
     }
 
-    pub fn circumcircle_radius_squared(&self) -> Option<f32> {
-        self.circumcenter().map(|c| c.distance_squared(self.a))
+    pub fn circumcenter(&self) -> Point2D {
+        self.circumcenter
     }
 
-    pub fn circumcircle_radius(&self) -> Option<f32> {
-        self.circumcenter().map(|c| c.distance(self.a))
+    fn calc_circumradius_squared(&self) -> f32 {
+        self.circumcenter.distance_squared(self.a)
     }
 
-    pub fn is_inside_circumcircle(&self, p: Point2D) -> Option<bool> {
-        let c = self.circumcenter()?;
-        let d = c.distance_squared(p);
-        let r = c.distance_squared(self.a);
-        Some(d <= r + EPS)
+    pub fn circumcircle_radius_squared(&self) -> f32 {
+        self.circumradius_squared
+    }
+
+    pub fn circumcircle_radius(&self) -> f32 {
+        self.circumradius_squared.sqrt()
+    }
+
+    pub fn is_inside_circumcircle(&self, p: Point2D) -> bool {
+        let d = self.circumcenter.distance_squared(p);
+        d <= self.circumradius_squared + EPS
     }
 
     pub fn has_point(&self, p: &Point2D) -> bool {
@@ -66,7 +82,7 @@ impl Triangle2D {
         self.edges().iter().map(|e| e.length()).sum()
     }
 
-    pub fn volume(&self) -> f32 {
+    pub fn area(&self) -> f32 {
         let edges = self.edges();
         let a = edges[0].length();
         let b = edges[1].length();

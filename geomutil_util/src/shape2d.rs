@@ -9,7 +9,7 @@ impl Shape2D {
         Self { triangles }
     }
 
-    pub fn volume(&self) -> f32 {
-        self.triangles.iter().map(|t| t.volume()).sum()
+    pub fn area(&self) -> f32 {
+        self.triangles.iter().map(|t| t.area()).sum()
     }
 }

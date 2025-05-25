@@ -19,7 +19,7 @@ impl AlphaShape2D {
         self.triangles = self
             .triangles
             .iter()
-            .filter(|t| t.circumcircle_radius_squared().unwrap() > (1.0 / alpha) * (1.0 / alpha))
+            .filter(|t| t.circumcircle_radius_squared().unwrap() <= (1.0 / alpha) * (1.0 / alpha))
             .copied()
             .collect::<Vec<_>>();
     }

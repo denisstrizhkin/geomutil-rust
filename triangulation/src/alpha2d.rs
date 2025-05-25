@@ -44,13 +44,11 @@ impl AlphaShape2D {
                     self.connections
                         .entry(i)
                         .and_modify(|adjacent: &mut _| {
-                            adjacent
-                                .iter_mut()
-                                .find(|a| a.is_none())
-                                .unwrap()
-                                .replace(j);
+                            if let Some(neigh) = adjacent.iter_mut().find(|a| a.is_none()) {
+                                neigh.replace(j);
+                            }
                         })
-                        .or_insert([None, None, None]);
+                        .or_insert([Some(j), None, None]);
                 }
             }
         }

@@ -1,7 +1,6 @@
 use anyhow::Result;
 use plotters::prelude::*;
 use triangulation::alpha_shape_2d;
-use triangulation::triangulate;
 use util::{Point2D, points_bounding_box};
 
 fn main() -> Result<()> {

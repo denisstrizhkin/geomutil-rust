@@ -20,7 +20,7 @@ impl AlphaShape2D {
     fn prune(&mut self) {
         let r_sq = (1.0 / self.alpha) * (1.0 / self.alpha);
         for i in (0..self.triangles.len()).rev() {
-            if self.triangles[i].circumcircle_radius_squared() <= r_sq {
+            if self.triangles[i].circumcircle_radius_squared() > r_sq {
                 self.triangles.swap_remove(i);
             }
         }
@@ -118,7 +118,7 @@ mod tests {
         // With alpha = 1.0:
         // - Internal triangles (R^2 = 0.5): 0.5 <= 1.0, so KEPT.
         // - Bridging triangles (R^2 = 1.25): 1.25 > 1.0, so PRUNED.
-        let alpha = 1.0;
+        let alpha = 1.25;
 
         let result = alpha_shape_2d(&points, alpha);
 

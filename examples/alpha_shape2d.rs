@@ -9,12 +9,12 @@ fn main() -> Result<()> {
         Point2D::new(1.0, 0.0),
         Point2D::new(1.0, 1.0),
         Point2D::new(0.0, 1.0),
-        Point2D::new(5.0, 0.0),
-        Point2D::new(6.0, 0.0),
-        Point2D::new(6.0, 1.0),
-        Point2D::new(5.0, 1.0),
+        Point2D::new(3.0, 0.0),
+        Point2D::new(4.0, 0.0),
+        Point2D::new(4.0, 1.0),
+        Point2D::new(3.0, 1.0),
     ];
-    let shapes = alpha_shape_2d(&points, 0.5).unwrap();
+    let shapes = alpha_shape_2d(&points, 1.25).unwrap();
     let root = BitMapBackend::new("triangles.png", (800, 600)).into_drawing_area();
     root.fill(&WHITE)?;
 

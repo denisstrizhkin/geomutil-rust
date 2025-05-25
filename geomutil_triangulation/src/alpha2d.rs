@@ -16,12 +16,9 @@ impl AlphaShape2D {
     }
 
     fn prune(&mut self, alpha: f32) {
-        self.triangles = self
-            .triangles
-            .iter()
-            .filter(|t| t.circumcircle_radius_squared().unwrap() <= (1.0 / alpha) * (1.0 / alpha))
-            .copied()
-            .collect::<Vec<_>>();
+        let r_sq = (1.0 / alpha) * (1.0 / alpha);
+        self.triangles
+            .retain(|t| t.circumcircle_radius_squared().unwrap() <= r_sq);
     }
 
     fn build_connections_graph(&mut self) {

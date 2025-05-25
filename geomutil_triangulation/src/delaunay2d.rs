@@ -14,48 +14,33 @@ impl Triangulation2D {
         }
     }
 
-    fn add(mut self, point: Point2D) -> Self {
-        let bad_triangles = self
+    fn add(&mut self, point: Point2D) {
+        let mut edges = HashMap::new();
+        for t in self
             .triangles
             .iter()
             .filter(|t| t.is_inside_circumcircle(point).unwrap())
-            .copied()
-            .collect::<Vec<_>>();
-        let mut edges = HashMap::new();
-        for t in bad_triangles.iter() {
+        {
             for e in t.edges() {
                 let e = e.canonical();
                 *edges.entry(e).or_insert(0) += 1;
             }
         }
-        let polygon = edges
+        self.triangles
+            .retain(|t| !t.is_inside_circumcircle(point).unwrap());
+        let new_triangles = edges
             .into_iter()
             .filter(|(_, c)| c.eq(&1))
-            .map(|(e, _)| e)
-            .collect::<Vec<_>>();
-        self.triangles = self
-            .triangles
-            .into_iter()
-            .filter(|t| !bad_triangles.contains(t))
-            .collect::<Vec<_>>();
-        let new_triangles = polygon
-            .into_iter()
-            .map(|e| Triangle2D::new(e.a, e.b, point));
+            .map(|(e, _)| Triangle2D::new(e.a, e.b, point));
         self.triangles.extend(new_triangles);
-        self
     }
 
-    fn finalize(mut self) -> Self {
-        self.triangles = self
-            .triangles
-            .into_iter()
-            .filter(|t| {
-                !(t.has_point(&self.bounding_triangle.a)
-                    || t.has_point(&self.bounding_triangle.b)
-                    || t.has_point(&self.bounding_triangle.c))
-            })
-            .collect::<Vec<_>>();
-        self
+    fn finalize(&mut self) {
+        self.triangles.retain(|t| {
+            !(t.has_point(&self.bounding_triangle.a)
+                || t.has_point(&self.bounding_triangle.b)
+                || t.has_point(&self.bounding_triangle.c))
+        });
     }
 }
 
@@ -77,18 +62,18 @@ pub fn triangulate(points: &[Point2D]) -> Option<Triangulation2D> {
         return None;
     }
     let bounding_triangle = get_bounding_triangle(&points);
-    let triangulation = points
-        .iter()
-        .copied()
-        .fold(Triangulation2D::new(bounding_triangle), |t, p| t.add(p))
-        .finalize();
+    let mut triangulation = Triangulation2D::new(bounding_triangle);
+    for point in points {
+        triangulation.add(point);
+    }
+    triangulation.finalize();
     Some(triangulation)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use util::Point2D;
+    use geomutil_util::Point2D;
 
     #[test]
     fn test_triangulate_rectangle() {

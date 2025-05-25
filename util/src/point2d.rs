@@ -171,15 +171,24 @@ pub fn points_max(points: &[Point2D]) -> Option<Point2D> {
     points.iter().copied().max()
 }
 
+pub fn points_bounding_box(points: &[Point2D]) -> Option<(Point2D, Point2D)> {
+    let p = *points.first()?;
+    let bounds = points.iter().skip(1).fold((p, p), |(low, up), p| {
+        (
+            Point2D::new(low.x.min(p.x), low.y.min(p.y)),
+            Point2D::new(up.x.max(p.x), up.y.max(p.y)),
+        )
+    });
+    Some(bounds)
+}
+
 #[cfg(test)]
 mod tests {
-    use super::*; // Import everything from the parent module
-
-    // Helper for float comparison due to precision issues
-    const EPSILON: f32 = 0.00001;
+    use super::*;
+    use crate::EPS;
 
     fn assert_approx_eq(a: f32, b: f32) {
-        assert!((a - b).abs() < EPSILON,);
+        assert!((a - b).abs() < EPS,);
     }
 
     fn assert_point2d_approx_eq(p1: Point2D, p2: Point2D) {

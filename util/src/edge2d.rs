@@ -14,6 +14,14 @@ impl Edge2D {
         Self { a, b }
     }
 
+    pub fn canonical(&self) -> Edge2D {
+        Edge2D::new(self.a.min(self.b), self.a.max(self.b))
+    }
+
+    pub fn flip(&self) -> Edge2D {
+        Edge2D::new(self.b, self.a)
+    }
+
     pub fn length(&self) -> f32 {
         self.a.distance(self.b)
     }

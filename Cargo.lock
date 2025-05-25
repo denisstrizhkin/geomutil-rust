@@ -8,6 +8,7 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
+ "triangulation",
  "util",
 ]
 
@@ -88,6 +89,13 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
+]
+
+[[package]]
+name = "triangulation"
+version = "0.1.0"
+dependencies = [
+ "util",
 ]
 
 [[package]]

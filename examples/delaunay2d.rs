@@ -1,7 +1,7 @@
 use anyhow::Result;
+use geomutil_triangulation::triangulate;
+use geomutil_util::{Point2D, points_bounding_box};
 use plotters::prelude::*;
-use triangulation::triangulate;
-use util::{Point2D, points_bounding_box};
 
 fn main() -> Result<()> {
     let points = [

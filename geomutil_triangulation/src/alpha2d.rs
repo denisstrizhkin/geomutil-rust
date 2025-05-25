@@ -1,6 +1,6 @@
 use crate::triangulate;
+use geomutil_util::{Edge2D, Point2D, Shape2D, Triangle2D};
 use std::collections::{HashMap, VecDeque};
-use util::{Edge2D, Point2D, Shape2D, Triangle2D};
 
 struct AlphaShape2D {
     triangles: Vec<Triangle2D>,

@@ -1,0 +1,13 @@
+[package]
+name = "geomutil_util"
+version = "0.1.0"
+edition = "2024"
+description = "A Rust library providing basic geometric types."
+license = "AGPL-3.0-or-later"
+repository = "https://github.com/denisstrizhkin/geomutil-rust"
+keywords = ["geometry", "point", "triangle"]
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+

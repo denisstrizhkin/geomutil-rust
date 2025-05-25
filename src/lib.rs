@@ -1,2 +1,2 @@
-pub use triangulation;
-pub use util;
+pub use geomutil_triangulation;
+pub use geomutil_util;

@@ -1,5 +1,5 @@
+use geomutil_util::{Point2D, Triangle2D, points_average, points_bounding_box, points_unique};
 use std::collections::HashMap;
-use util::{Point2D, Triangle2D, points_average, points_bounding_box, points_unique};
 
 pub struct Triangulation2D {
     pub bounding_triangle: Triangle2D,

@@ -107,6 +107,10 @@ impl Point2D {
         Point2D { x, y }
     }
 
+    pub fn xy(self) -> (f32, f32) {
+        (self.x, self.y)
+    }
+
     pub fn length_squared(self) -> f32 {
         let m = self * self;
         m.x + m.y

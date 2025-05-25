@@ -9,6 +9,10 @@ serde_json = { workspace = true }
 util = { workspace = true }
 triangulation = { workspace = true }
 
+[dev-dependencies]
+anyhow = "1.0.98"
+plotters = "0.3.7"
+
 [workspace]
 members = [
   "triangulation",

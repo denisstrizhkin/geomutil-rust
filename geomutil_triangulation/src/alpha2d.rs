@@ -45,9 +45,8 @@ impl AlphaShape2D {
                 (neighbours[1], neighbours[0]),
             ] {
                 if let Some(i) = i {
-                    let mut adjacent = self.connections[i];
-                    if let Some(neigh) = adjacent.iter_mut().find(|a| a.is_none()) {
-                        *neigh = j;
+                    if let Some(neighbour) = self.connections[i].iter_mut().find(|a| a.is_none()) {
+                        *neighbour = j;
                     }
                 }
             }
@@ -93,46 +92,37 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_two_disconnected_rectangles() {
-        // Define points for two rectangles
+    fn test_single_square() {
         let points = vec![
-            Point2D::new(0.0, 0.0), // p0
-            Point2D::new(1.0, 0.0), // p1
-            Point2D::new(1.0, 1.0), // p2
-            Point2D::new(0.0, 1.0), // p3
-            Point2D::new(3.0, 0.0), // p4
-            Point2D::new(4.0, 0.0), // p5
-            Point2D::new(4.0, 1.0), // p6
-            Point2D::new(3.0, 1.0), // p7
+            Point2D::new(0.0, 0.0),
+            Point2D::new(1.0, 0.0),
+            Point2D::new(1.0, 1.0),
+            Point2D::new(0.0, 1.0),
         ];
+        let shapes = alpha_shape_2d(&points, 1.25);
+        assert!(shapes.is_some());
+        let shapes = shapes.unwrap();
+        assert_eq!(shapes.len(), 1);
+        assert_eq!(shapes[0].triangles.len(), 2);
+    }
 
-        // Choose an alpha value.
-        // - Internal triangles (e.g., (0,0)-(1,0)-(1,1)) have R^2 = 0.5.
-        // - Bridging triangles (e.g., (1,0)-(3,0)-(1,1)) have R^2 = 1.25.
-        //
-        // We want to prune triangles where R^2 > (1/alpha)^2.
-        // To prune bridging triangles (R^2 = 1.25) but keep internal ones (R^2 = 0.5),
-        // we need (1/alpha)^2 to be between 0.5 and 1.25.
-        // Let's pick (1/alpha)^2 = 1.0, which means 1/alpha = 1.0, so alpha = 1.0.
-        //
-        // With alpha = 1.0:
-        // - Internal triangles (R^2 = 0.5): 0.5 <= 1.0, so KEPT.
-        // - Bridging triangles (R^2 = 1.25): 1.25 > 1.0, so PRUNED.
-        let alpha = 1.25;
-
-        let result = alpha_shape_2d(&points, alpha);
-
-        // Assert that the result is Some and contains exactly two shapes
-        assert!(
-            result.is_some(),
-            "alpha_shape_2d should return Some for valid input."
-        );
-        let shapes = result.unwrap();
-        assert_eq!(shapes.len(), 2, "Expected 2 disconnected shapes.");
-
-        // Optionally, you can add more assertions to check the content of the shapes,
-        // e.g., verify that each shape contains triangles forming one of the rectangles.
-        // This would involve iterating through the shapes and checking their constituent triangles.
-        // For this specific test, verifying the count of shapes is sufficient for the requirement.
+    #[test]
+    fn test_two_disconnected_squares() {
+        let points = vec![
+            Point2D::new(0.0, 0.0),
+            Point2D::new(1.0, 0.0),
+            Point2D::new(1.0, 1.0),
+            Point2D::new(0.0, 1.0),
+            Point2D::new(3.0, 0.0),
+            Point2D::new(4.0, 0.0),
+            Point2D::new(4.0, 1.0),
+            Point2D::new(3.0, 1.0),
+        ];
+        let shapes = alpha_shape_2d(&points, 1.25);
+        assert!(shapes.is_some());
+        let shapes = shapes.unwrap();
+        assert_eq!(shapes.len(), 2);
+        assert_eq!(shapes[0].triangles.len(), 2);
+        assert_eq!(shapes[1].triangles.len(), 2);
     }
 }

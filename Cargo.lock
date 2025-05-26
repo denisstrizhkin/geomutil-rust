@@ -305,14 +305,14 @@ dependencies = [
 
 [[package]]
 name = "geomutil_triangulation"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "geomutil_util",
 ]
 
 [[package]]
 name = "geomutil_util"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "serde",
  "serde_json",

@@ -11,6 +11,6 @@ impl Shape2D {
     }
 
     pub fn area(&self) -> f32 {
-        self.triangles.iter().map(|t| t.area()).sum()
+        self.triangles.iter().map(Triangle2::area).sum()
     }
 }

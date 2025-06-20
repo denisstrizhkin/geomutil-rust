@@ -1,11 +1,12 @@
-use crate::Triangle2D;
+use crate::Triangle2;
 
+#[derive(Clone)]
 pub struct Shape2D {
-    pub triangles: Vec<Triangle2D>,
+    pub triangles: Vec<Triangle2>,
 }
 
 impl Shape2D {
-    pub fn new(triangles: Vec<Triangle2D>) -> Self {
+    pub fn new(triangles: Vec<Triangle2>) -> Self {
         Self { triangles }
     }
 

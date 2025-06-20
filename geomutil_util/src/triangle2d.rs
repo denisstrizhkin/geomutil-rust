@@ -1,19 +1,19 @@
-use crate::{EPS, Edge2D, Point2D};
+use crate::{EPS, Edge2, Point2};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Triangle2D {
-    pub a: Point2D,
-    pub b: Point2D,
-    pub c: Point2D,
-    circumcenter: Point2D,
+pub struct Triangle2 {
+    pub a: Point2,
+    pub b: Point2,
+    pub c: Point2,
+    circumcenter: Point2,
     circumradius_squared: f32,
 }
 
-impl Eq for Triangle2D {}
+impl Eq for Triangle2 {}
 
-impl Triangle2D {
-    pub fn new(a: Point2D, b: Point2D, c: Point2D) -> Option<Self> {
+impl Triangle2 {
+    pub fn new(a: Point2, b: Point2, c: Point2) -> Option<Self> {
         let mut t = Self {
             a,
             b,
@@ -25,13 +25,13 @@ impl Triangle2D {
         Some(t)
     }
 
-    fn calc_circumcenter(&self) -> Option<Point2D> {
+    fn calc_circumcenter(&self) -> Option<Point2> {
         let a = self.a;
         let b = self.b;
         let c = self.c;
         let d = 2.0 * (a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y));
 
-        if d.abs() < EPS {
+        if d.abs() == 0.0 {
             return None;
         }
 
@@ -42,10 +42,10 @@ impl Triangle2D {
         let ux = (a_len_sq * (b.y - c.y) + b_len_sq * (c.y - a.y) + c_len_sq * (a.y - b.y)) / d;
         let uy = (a_len_sq * (c.x - b.x) + b_len_sq * (a.x - c.x) + c_len_sq * (b.x - a.x)) / d;
 
-        Some(Point2D::new(ux, uy))
+        Some(Point2::from([ux, uy]))
     }
 
-    pub fn circumcenter(&self) -> Point2D {
+    pub fn circumcenter(&self) -> Point2 {
         self.circumcenter
     }
 
@@ -61,20 +61,20 @@ impl Triangle2D {
         self.circumradius_squared.sqrt()
     }
 
-    pub fn is_inside_circumcircle(&self, p: Point2D) -> bool {
+    pub fn is_inside_circumcircle(&self, p: Point2) -> bool {
         let d = self.circumcenter.distance_squared(p);
         d <= self.circumradius_squared + EPS
     }
 
-    pub fn has_point(&self, p: &Point2D) -> bool {
+    pub fn has_point(&self, p: &Point2) -> bool {
         self.a.eq(p) || self.b.eq(p) || self.c.eq(p)
     }
 
-    pub fn edges(&self) -> [Edge2D; 3] {
+    pub fn edges(&self) -> [Edge2; 3] {
         [
-            Edge2D::new(self.a, self.b),
-            Edge2D::new(self.b, self.c),
-            Edge2D::new(self.c, self.a),
+            Edge2::new(self.a, self.b),
+            Edge2::new(self.b, self.c),
+            Edge2::new(self.c, self.a),
         ]
     }
 
@@ -87,7 +87,7 @@ impl Triangle2D {
         let a = edges[0].length();
         let b = edges[1].length();
         let c = edges[2].length();
-        let s = 0.5 * (a + b + c);
+        let s = 0.5f32 * (a + b + c);
         (s * (s - a) * (s - b) * (s - c)).sqrt()
     }
 }

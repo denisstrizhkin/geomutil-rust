@@ -1,25 +1,25 @@
-use crate::Point2D;
+use crate::Point2;
 use serde::{Deserialize, Serialize};
 
 #[derive(
     Debug, Default, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, Hash, Serialize, Deserialize,
 )]
-pub struct Edge2D {
-    pub a: Point2D,
-    pub b: Point2D,
+pub struct Edge2 {
+    pub a: Point2,
+    pub b: Point2,
 }
 
-impl Edge2D {
-    pub fn new(a: Point2D, b: Point2D) -> Self {
+impl Edge2 {
+    pub fn new(a: Point2, b: Point2) -> Self {
         Self { a, b }
     }
 
-    pub fn canonical(&self) -> Edge2D {
-        Edge2D::new(self.a.min(self.b), self.a.max(self.b))
+    pub fn canonical(&self) -> Edge2 {
+        Edge2::new(self.a.min(self.b), self.a.max(self.b))
     }
 
-    pub fn flip(&self) -> Edge2D {
-        Edge2D::new(self.b, self.a)
+    pub fn flip(&self) -> Edge2 {
+        Edge2::new(self.b, self.a)
     }
 
     pub fn length(&self) -> f32 {

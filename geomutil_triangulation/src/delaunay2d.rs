@@ -1,20 +1,20 @@
-use geomutil_util::{Point2D, Triangle2D, points_average, points_bounding_box, points_unique};
+use geomutil_util::{Point2, Triangle2};
 use std::collections::HashMap;
 
-pub struct Triangulation2D {
-    pub bounding_triangle: Triangle2D,
-    pub triangles: Vec<Triangle2D>,
+pub struct Triangulation2 {
+    pub bounding_triangle: Triangle2,
+    pub triangles: Vec<Triangle2>,
 }
 
-impl Triangulation2D {
-    fn new(bounding_triangle: Triangle2D) -> Self {
+impl Triangulation2 {
+    fn new(bounding_triangle: Triangle2) -> Self {
         Self {
             bounding_triangle: bounding_triangle.clone(),
             triangles: vec![bounding_triangle],
         }
     }
 
-    fn add(&mut self, point: Point2D) {
+    fn add(&mut self, point: Point2) {
         let mut triangles_to_keep = Vec::with_capacity(self.triangles.len());
         let mut triangles_to_add_edges = HashMap::with_capacity(self.triangles.len() * 2);
         for t in self.triangles.drain(..) {
@@ -31,7 +31,7 @@ impl Triangulation2D {
         let new_triangles = triangles_to_add_edges
             .into_iter()
             .filter(|(_, c)| c.eq(&1))
-            .map(|(e, _)| Triangle2D::new(e.a, e.b, point).unwrap());
+            .filter_map(|(e, _)| Triangle2::new(e.a, e.b, point));
         self.triangles.extend(new_triangles);
     }
 
@@ -44,25 +44,25 @@ impl Triangulation2D {
     }
 }
 
-fn get_bounding_triangle(points: &[Point2D]) -> Option<Triangle2D> {
-    let (lower_bound, upper_bound) = points_bounding_box(points)?;
+fn get_bounding_triangle(points: impl IntoIterator<Item = Point2>) -> Option<Triangle2> {
+    let (lower_bound, upper_bound) = Point2::bounding_box(points)?;
     let d = upper_bound - lower_bound;
     let d = 3.0 * d.x.max(d.y);
-    let center = points_average(&[lower_bound, upper_bound])?;
-    Triangle2D::new(
-        Point2D::new(center.x - 0.866 * d, center.y - 0.5 * d),
-        Point2D::new(center.x + 0.866 * d, center.y - 0.5 * d),
-        Point2D::new(center.x, center.y + d),
+    let center = Point2::avg([lower_bound, upper_bound])?;
+    Triangle2::new(
+        Point2::from([center.x - 0.866 * d, center.y - 0.5 * d]),
+        Point2::from([center.x + 0.866 * d, center.y - 0.5 * d]),
+        Point2::from([center.x, center.y + d]),
     )
 }
 
-pub fn triangulate(points: &[Point2D]) -> Option<Triangulation2D> {
-    let points = points_unique(points);
+pub fn triangulate(points: impl IntoIterator<Item = Point2>) -> Option<Triangulation2> {
+    let points = Point2::unique(points);
     if points.len() < 3 {
         return None;
     }
-    let bounding_triangle = get_bounding_triangle(&points)?;
-    let mut triangulation = Triangulation2D::new(bounding_triangle);
+    let bounding_triangle = get_bounding_triangle(points.clone())?;
+    let mut triangulation = Triangulation2::new(bounding_triangle);
     for point in points {
         triangulation.add(point);
     }
@@ -73,20 +73,19 @@ pub fn triangulate(points: &[Point2D]) -> Option<Triangulation2D> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use geomutil_util::Point2D;
 
     #[test]
     fn test_triangulate_rectangle() {
         // Define the four corners of a rectangle
-        let p1 = Point2D::new(0.0, 0.0);
-        let p2 = Point2D::new(10.0, 0.0);
-        let p3 = Point2D::new(10.0, 10.0);
-        let p4 = Point2D::new(0.0, 10.0);
+        let p1 = Point2::from([0.0, 0.0]);
+        let p2 = Point2::from([10.0, 0.0]);
+        let p3 = Point2::from([10.0, 10.0]);
+        let p4 = Point2::from([0.0, 10.0]);
 
         let points = vec![p1, p2, p3, p4];
 
         // Perform the triangulation
-        let result = triangulate(&points);
+        let result = triangulate(points);
 
         // Assert that a triangulation was returned
         assert!(result.is_some(), "Triangulation should not be None");

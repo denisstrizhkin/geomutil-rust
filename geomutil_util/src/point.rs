@@ -277,13 +277,28 @@ impl<const N: usize> Point<N> {
     }
 }
 
+impl Point2 {
+    pub fn polar_angle(self) -> f32 {
+        let angle = self.y.atan2(self.x);
+        if angle >= 0.0 {
+            angle
+        } else {
+            angle + 2.0 * std::f32::consts::PI
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::EPS;
 
     fn assert_approx_eq(a: f32, b: f32) {
-        assert!((a - b).abs() < EPS,);
+        assert_approx_eq_eps(a, b, EPS);
+    }
+
+    fn assert_approx_eq_eps(a: f32, b: f32, eps: f32) {
+        assert!((a - b).abs() < eps.abs(), "wanted: {b}, got: {a}");
     }
 
     fn assert_point_approx_eq<const N: usize>(a: Point<N>, b: Point<N>) {
@@ -434,6 +449,47 @@ mod tests {
         assert_point_approx_eq(
             p.normalize(),
             Point::from([0.1 / p_len, 0.2 / p_len, 0.3 / p_len]),
+        );
+    }
+
+    #[test]
+    fn test_point2_polar_angle() {
+        let eps = 1e-4;
+        assert_approx_eq_eps(Point::from([1.0, 0.0]).polar_angle().to_degrees(), 0.0, eps);
+        assert_approx_eq_eps(
+            Point::from([1.0, 1.0]).polar_angle().to_degrees(),
+            45.0,
+            eps,
+        );
+        assert_approx_eq_eps(
+            Point::from([0.0, 1.0]).polar_angle().to_degrees(),
+            90.0,
+            eps,
+        );
+        assert_approx_eq_eps(
+            Point::from([-1.0, 1.0]).polar_angle().to_degrees(),
+            135.0,
+            eps,
+        );
+        assert_approx_eq_eps(
+            Point::from([-1.0, 0.0]).polar_angle().to_degrees(),
+            180.0,
+            eps,
+        );
+        assert_approx_eq_eps(
+            Point::from([-1.0, -1.0]).polar_angle().to_degrees(),
+            225.0,
+            eps,
+        );
+        assert_approx_eq_eps(
+            Point::from([0.0, -1.0]).polar_angle().to_degrees(),
+            270.0,
+            eps,
+        );
+        assert_approx_eq_eps(
+            Point::from([1.0, -1.0]).polar_angle().to_degrees(),
+            315.0,
+            eps,
         );
     }
 }

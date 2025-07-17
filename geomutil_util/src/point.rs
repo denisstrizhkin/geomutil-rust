@@ -463,7 +463,7 @@ mod tests {
         assert!(bbox.is_some());
         let bbox = bbox.unwrap();
         assert_point_approx_eq(bbox.lower(), Point::from([0.0, 0.0, 1.0]));
-        assert_point_approx_eq(bbox.higher(), Point::from([6.0, 9.0, 15.0]));
+        assert_point_approx_eq(bbox.upper(), Point::from([6.0, 9.0, 15.0]));
     }
 
     #[test]

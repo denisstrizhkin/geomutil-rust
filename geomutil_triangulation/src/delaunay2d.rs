@@ -45,10 +45,10 @@ impl Triangulation2 {
 }
 
 fn get_bounding_triangle(points: impl IntoIterator<Item = Point2>) -> Option<Triangle2> {
-    let (lower_bound, upper_bound) = Point2::bounding_box(points)?;
-    let d = upper_bound - lower_bound;
+    let bbox = Point2::bounding_box(points)?;
+    let d = bbox.dimensions();
     let d = 3.0 * d.x.max(d.y);
-    let center = Point2::avg([lower_bound, upper_bound])?;
+    let center = bbox.center();
     Triangle2::new(
         Point2::from([center.x - 0.866 * d, center.y - 0.5 * d]),
         Point2::from([center.x + 0.866 * d, center.y - 0.5 * d]),

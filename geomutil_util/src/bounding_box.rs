@@ -30,12 +30,17 @@ impl<const N: usize> BoundingBox<N> {
         self.min
     }
 
-    pub fn higher(&self) -> Point<N> {
+    pub fn upper(&self) -> Point<N> {
         self.max
     }
 
     pub fn dimensions(&self) -> Point<N> {
         self.max - self.min
+    }
+
+    pub fn center(&self) -> Point<N> {
+        // can unwrap because we always have 2 points
+        Point::avg([self.min, self.max]).unwrap()
     }
 
     pub fn volume(&self) -> f32 {

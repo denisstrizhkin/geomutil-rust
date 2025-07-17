@@ -10,7 +10,7 @@ use std::{
 
 use serde::{Deserialize, Serialize, ser::SerializeSeq};
 
-use crate::BoundingBox;
+use crate::bounding_box::BoundingBox;
 
 macro_rules! view_impl {
     ($T: ident; $($comps: ident),*) => {

@@ -104,7 +104,7 @@ impl<const N: usize> Serialize for Point<N> {
 }
 
 impl<'de, const N: usize> Deserialize<'de> for Point<N> {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    fn deserialize<D>(_deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {

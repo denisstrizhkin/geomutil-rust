@@ -1,13 +1,16 @@
 use std::{
+    array,
     cmp::Ordering,
     collections::HashSet,
     hash::{Hash, Hasher},
-    iter::zip,
+    iter,
     ops::{Add, AddAssign, Deref, DerefMut, Div, DivAssign, Mul, MulAssign, Sub, SubAssign},
-    ptr,
+    ptr, slice,
 };
 
 use serde::{Deserialize, Serialize, ser::SerializeSeq};
+
+use crate::BoundingBox;
 
 macro_rules! view_impl {
     ($T: ident; $($comps: ident),*) => {
@@ -54,7 +57,7 @@ deref_impl!(Point, 3, ViewXYZ);
 
 impl<const N: usize> Hash for Point<N> {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.coords.iter().for_each(|a| a.to_bits().hash(state));
+        self.iter().for_each(|a| a.to_bits().hash(state));
     }
 }
 
@@ -62,8 +65,8 @@ impl<const N: usize> Eq for Point<N> {}
 
 impl<const N: usize> Ord for Point<N> {
     fn cmp(&self, other: &Self) -> Ordering {
-        zip(self.coords, other.coords).fold(Ordering::Equal, |ord, (a, b)| match ord {
-            Ordering::Equal => a.total_cmp(&b),
+        iter::zip(self, other).fold(Ordering::Equal, |ord, (a, b)| match ord {
+            Ordering::Equal => a.total_cmp(b),
             ord => ord,
         })
     }
@@ -77,7 +80,9 @@ impl<const N: usize> PartialOrd for Point<N> {
 
 impl<const N: usize> Default for Point<N> {
     fn default() -> Self {
-        Self { coords: [0.0; N] }
+        Self {
+            coords: [Default::default(); N],
+        }
     }
 }
 
@@ -93,9 +98,7 @@ impl<const N: usize> Serialize for Point<N> {
         S: serde::Serializer,
     {
         let mut seq = serializer.serialize_seq(Some(N))?;
-        self.coords
-            .iter()
-            .try_for_each(|a| seq.serialize_element(a))?;
+        self.iter().try_for_each(|a| seq.serialize_element(a))?;
         seq.end()
     }
 }
@@ -111,13 +114,13 @@ impl<'de, const N: usize> Deserialize<'de> for Point<N> {
 
 impl<const N: usize> AddAssign<Point<N>> for Point<N> {
     fn add_assign(&mut self, rhs: Point<N>) {
-        zip(&mut self.coords, rhs.coords).for_each(|(a, b)| *a += b);
+        iter::zip(self, rhs).for_each(|(a, b)| *a += b);
     }
 }
 
 impl<const N: usize> AddAssign<f32> for Point<N> {
     fn add_assign(&mut self, rhs: f32) {
-        self.coords.iter_mut().for_each(|a| *a += rhs);
+        self.iter_mut().for_each(|a| *a += rhs);
     }
 }
 
@@ -141,13 +144,13 @@ impl<const N: usize> Add<f32> for Point<N> {
 
 impl<const N: usize> SubAssign<Point<N>> for Point<N> {
     fn sub_assign(&mut self, rhs: Point<N>) {
-        zip(&mut self.coords, rhs.coords).for_each(|(a, b)| *a -= b);
+        iter::zip(self, rhs).for_each(|(a, b)| *a -= b);
     }
 }
 
 impl<const N: usize> SubAssign<f32> for Point<N> {
     fn sub_assign(&mut self, rhs: f32) {
-        self.coords.iter_mut().for_each(|a| *a -= rhs);
+        self.iter_mut().for_each(|a| *a -= rhs);
     }
 }
 
@@ -171,13 +174,13 @@ impl<const N: usize> Sub<f32> for Point<N> {
 
 impl<const N: usize> MulAssign<Point<N>> for Point<N> {
     fn mul_assign(&mut self, rhs: Point<N>) {
-        zip(&mut self.coords, rhs.coords).for_each(|(a, b)| *a *= b);
+        iter::zip(self, rhs).for_each(|(a, b)| *a *= b);
     }
 }
 
 impl<const N: usize> MulAssign<f32> for Point<N> {
     fn mul_assign(&mut self, rhs: f32) {
-        self.coords.iter_mut().for_each(|a| *a *= rhs);
+        self.iter_mut().for_each(|a| *a *= rhs);
     }
 }
 
@@ -201,13 +204,13 @@ impl<const N: usize> Mul<f32> for Point<N> {
 
 impl<const N: usize> DivAssign<Point<N>> for Point<N> {
     fn div_assign(&mut self, rhs: Point<N>) {
-        zip(&mut self.coords, rhs.coords).for_each(|(a, b)| *a /= b)
+        iter::zip(self, rhs).for_each(|(a, b)| *a /= b)
     }
 }
 
 impl<const N: usize> DivAssign<f32> for Point<N> {
     fn div_assign(&mut self, rhs: f32) {
-        self.coords.iter_mut().for_each(|a| *a /= rhs);
+        self.iter_mut().for_each(|a| *a /= rhs);
     }
 }
 
@@ -229,9 +232,17 @@ impl<const N: usize> Div<f32> for Point<N> {
     }
 }
 
-impl<const N: usize> Point<N> {
+impl<'a, const N: usize> Point<N> {
+    pub fn iter(&'a self) -> slice::Iter<'a, f32> {
+        self.coords.iter()
+    }
+
+    pub fn iter_mut(&'a mut self) -> slice::IterMut<'a, f32> {
+        self.coords.iter_mut()
+    }
+
     pub fn length_squared(self) -> f32 {
-        (self * self).coords.iter().sum::<f32>()
+        (self * self).iter().sum::<f32>()
     }
 
     pub fn length(self) -> f32 {
@@ -266,14 +277,42 @@ impl<const N: usize> Point<N> {
         Some(sum / cnt as f32)
     }
 
-    pub fn bounding_box(points: impl IntoIterator<Item = Self>) -> Option<(Self, Self)> {
+    pub fn bounding_box(points: impl IntoIterator<Item = Self>) -> Option<BoundingBox<N>> {
         let mut points = points.into_iter();
         let first = points.next()?;
-        Some(points.fold((first, first), |(mut low, mut high), p| {
-            zip(&mut low.coords, p.coords).for_each(|(a, b)| *a = a.min(b));
-            zip(&mut high.coords, p.coords).for_each(|(a, b)| *a = a.max(b));
-            (low, high)
-        }))
+        Some(
+            points
+                .fold((first, first), |(mut low, mut high), point| {
+                    iter::zip(&mut low, point).for_each(|(a, b)| *a = a.min(b));
+                    iter::zip(&mut high, point).for_each(|(a, b)| *a = a.max(b));
+                    (low, high)
+                })
+                .into(),
+        )
+    }
+}
+
+impl<const N: usize> IntoIterator for Point<N> {
+    type Item = f32;
+    type IntoIter = array::IntoIter<f32, N>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.coords.into_iter()
+    }
+}
+
+impl<'a, const N: usize> IntoIterator for &'a Point<N> {
+    type Item = &'a f32;
+    type IntoIter = slice::Iter<'a, f32>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
+impl<'a, const N: usize> IntoIterator for &'a mut Point<N> {
+    type Item = &'a mut f32;
+    type IntoIter = slice::IterMut<'a, f32>;
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter_mut()
     }
 }
 
@@ -302,7 +341,7 @@ mod tests {
     }
 
     fn assert_point_approx_eq<const N: usize>(a: Point<N>, b: Point<N>) {
-        zip(a.coords, b.coords).for_each(|(a, b)| assert_approx_eq(a, b));
+        iter::zip(a, b).for_each(|(a, b)| assert_approx_eq(a, b));
     }
 
     #[test]
@@ -420,11 +459,11 @@ mod tests {
             Point::from([6.0, 1.0, 7.0]),
             Point::from([3.0, 9.0, 4.0]),
         ];
-        let bounds = Point::bounding_box(points);
-        assert!(bounds.is_some());
-        let (low, high) = bounds.unwrap();
-        assert_point_approx_eq(low, Point::from([0.0, 0.0, 1.0]));
-        assert_point_approx_eq(high, Point::from([6.0, 9.0, 15.0]));
+        let bbox = Point::bounding_box(points);
+        assert!(bbox.is_some());
+        let bbox = bbox.unwrap();
+        assert_point_approx_eq(bbox.lower(), Point::from([0.0, 0.0, 1.0]));
+        assert_point_approx_eq(bbox.higher(), Point::from([6.0, 9.0, 15.0]));
     }
 
     #[test]

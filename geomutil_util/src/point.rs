@@ -28,7 +28,7 @@ view_impl!(ViewXYZ; x, y, z);
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Point<const N: usize> {
-    coords: [f32; N],
+    pub coords: [f32; N],
 }
 
 pub type Point2 = Point<2>;

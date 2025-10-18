@@ -4,7 +4,10 @@ use std::{
     collections::HashSet,
     hash::{Hash, Hasher},
     iter,
-    ops::{Add, AddAssign, Deref, DerefMut, Div, DivAssign, Mul, MulAssign, Sub, SubAssign},
+    ops::{
+        Add, AddAssign, Deref, DerefMut, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Sub,
+        SubAssign,
+    },
     ptr, slice,
 };
 
@@ -313,6 +316,19 @@ impl<'a, const N: usize> IntoIterator for &'a mut Point<N> {
     type IntoIter = slice::IterMut<'a, f32>;
     fn into_iter(self) -> Self::IntoIter {
         self.iter_mut()
+    }
+}
+
+impl<const N: usize> Index<usize> for Point<N> {
+    type Output = f32;
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.coords[index]
+    }
+}
+
+impl<const N: usize> IndexMut<usize> for Point<N> {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.coords[index]
     }
 }
 

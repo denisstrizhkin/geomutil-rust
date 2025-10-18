@@ -14,17 +14,7 @@ pub type BoundingBox3 = BoundingBox<3>;
 impl<const N: usize> BoundingBox<N> {
     #[must_use]
     pub fn new(a: Point<N>, b: Point<N>) -> Self {
-        let min = {
-            let mut min = Point::<N>::default();
-            iter::zip(&mut min, iter::zip(a, b)).for_each(|(val, (a, b))| *val = a.min(b));
-            min
-        };
-        let max = {
-            let mut max = Point::<N>::default();
-            iter::zip(&mut max, iter::zip(a, b)).for_each(|(val, (a, b))| *val = a.max(b));
-            max
-        };
-        Self { min, max }
+        Point::bounding_box([a, b]).unwrap()
     }
 
     #[must_use]
@@ -44,17 +34,12 @@ impl<const N: usize> BoundingBox<N> {
 
     #[must_use]
     pub fn center(&self) -> Point<N> {
-        // can unwrap because we always have 2 points
         Point::avg([self.min, self.max]).unwrap()
     }
 
     #[must_use]
     pub fn volume(&self) -> f32 {
-        self.dimensions()
-            .iter()
-            .copied()
-            .reduce(|acc, x| (acc * x))
-            .unwrap()
+        self.dimensions().into_iter().fold(1.0, |vol, x| vol * x)
     }
 
     #[must_use]

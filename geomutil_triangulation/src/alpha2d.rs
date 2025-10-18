@@ -1,15 +1,15 @@
 use crate::triangulate;
-use geomutil_util::{Edge2, Point2, Shape2D, Triangle2};
+use geomutil_util::{Edge2, Point2, Shape2D, Triangle};
 use std::collections::{HashMap, VecDeque};
 
 struct AlphaShape2D {
     alpha: f32,
-    triangles: Vec<Triangle2>,
+    triangles: Vec<Triangle>,
     connections: Vec<[Option<usize>; 3]>,
 }
 
 impl AlphaShape2D {
-    fn new(triangles: Vec<Triangle2>, alpha: f32) -> Self {
+    const fn new(triangles: Vec<Triangle>, alpha: f32) -> Self {
         Self {
             alpha,
             triangles,
@@ -27,7 +27,7 @@ impl AlphaShape2D {
         self.connections = vec![[None; 3]; self.triangles.len()];
     }
 
-    fn build_connections_graph(&mut self) {
+    fn build_connections_graph(&self) {
         let mut adjacent_edges: HashMap<Edge2, [Option<usize>; 2]> =
             HashMap::with_capacity(self.triangles.len() * 2);
         for (i, t) in self.triangles.iter().enumerate() {

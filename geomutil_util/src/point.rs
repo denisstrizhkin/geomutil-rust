@@ -115,8 +115,8 @@ impl<'de, const N: usize> Deserialize<'de> for Point<N> {
     }
 }
 
-impl<const N: usize> AddAssign<Point<N>> for Point<N> {
-    fn add_assign(&mut self, rhs: Point<N>) {
+impl<const N: usize> AddAssign<Self> for Point<N> {
+    fn add_assign(&mut self, rhs: Self) {
         iter::zip(self, rhs).for_each(|(a, b)| *a += b);
     }
 }
@@ -127,9 +127,9 @@ impl<const N: usize> AddAssign<f32> for Point<N> {
     }
 }
 
-impl<const N: usize> Add<Point<N>> for Point<N> {
-    type Output = Point<N>;
-    fn add(self, rhs: Point<N>) -> Self::Output {
+impl<const N: usize> Add<Self> for Point<N> {
+    type Output = Self;
+    fn add(self, rhs: Self) -> Self::Output {
         let mut result = self;
         result += rhs;
         result
@@ -137,7 +137,7 @@ impl<const N: usize> Add<Point<N>> for Point<N> {
 }
 
 impl<const N: usize> Add<f32> for Point<N> {
-    type Output = Point<N>;
+    type Output = Self;
     fn add(self, rhs: f32) -> Self::Output {
         let mut result = self;
         result += rhs;
@@ -145,8 +145,8 @@ impl<const N: usize> Add<f32> for Point<N> {
     }
 }
 
-impl<const N: usize> SubAssign<Point<N>> for Point<N> {
-    fn sub_assign(&mut self, rhs: Point<N>) {
+impl<const N: usize> SubAssign<Self> for Point<N> {
+    fn sub_assign(&mut self, rhs: Self) {
         iter::zip(self, rhs).for_each(|(a, b)| *a -= b);
     }
 }
@@ -157,9 +157,9 @@ impl<const N: usize> SubAssign<f32> for Point<N> {
     }
 }
 
-impl<const N: usize> Sub<Point<N>> for Point<N> {
-    type Output = Point<N>;
-    fn sub(self, rhs: Point<N>) -> Self::Output {
+impl<const N: usize> Sub<Self> for Point<N> {
+    type Output = Self;
+    fn sub(self, rhs: Self) -> Self::Output {
         let mut result = self;
         result -= rhs;
         result
@@ -167,7 +167,7 @@ impl<const N: usize> Sub<Point<N>> for Point<N> {
 }
 
 impl<const N: usize> Sub<f32> for Point<N> {
-    type Output = Point<N>;
+    type Output = Self;
     fn sub(self, rhs: f32) -> Self::Output {
         let mut result = self;
         result -= rhs;
@@ -175,8 +175,8 @@ impl<const N: usize> Sub<f32> for Point<N> {
     }
 }
 
-impl<const N: usize> MulAssign<Point<N>> for Point<N> {
-    fn mul_assign(&mut self, rhs: Point<N>) {
+impl<const N: usize> MulAssign<Self> for Point<N> {
+    fn mul_assign(&mut self, rhs: Self) {
         iter::zip(self, rhs).for_each(|(a, b)| *a *= b);
     }
 }
@@ -187,9 +187,9 @@ impl<const N: usize> MulAssign<f32> for Point<N> {
     }
 }
 
-impl<const N: usize> Mul<Point<N>> for Point<N> {
-    type Output = Point<N>;
-    fn mul(self, rhs: Point<N>) -> Self::Output {
+impl<const N: usize> Mul<Self> for Point<N> {
+    type Output = Self;
+    fn mul(self, rhs: Self) -> Self::Output {
         let mut result = self;
         result *= rhs;
         result
@@ -197,7 +197,7 @@ impl<const N: usize> Mul<Point<N>> for Point<N> {
 }
 
 impl<const N: usize> Mul<f32> for Point<N> {
-    type Output = Point<N>;
+    type Output = Self;
     fn mul(self, rhs: f32) -> Self::Output {
         let mut result = self;
         result *= rhs;
@@ -205,9 +205,9 @@ impl<const N: usize> Mul<f32> for Point<N> {
     }
 }
 
-impl<const N: usize> DivAssign<Point<N>> for Point<N> {
-    fn div_assign(&mut self, rhs: Point<N>) {
-        iter::zip(self, rhs).for_each(|(a, b)| *a /= b)
+impl<const N: usize> DivAssign<Self> for Point<N> {
+    fn div_assign(&mut self, rhs: Self) {
+        iter::zip(self, rhs).for_each(|(a, b)| *a /= b);
     }
 }
 
@@ -217,9 +217,9 @@ impl<const N: usize> DivAssign<f32> for Point<N> {
     }
 }
 
-impl<const N: usize> Div<Point<N>> for Point<N> {
-    type Output = Point<N>;
-    fn div(self, rhs: Point<N>) -> Self::Output {
+impl<const N: usize> Div<Self> for Point<N> {
+    type Output = Self;
+    fn div(self, rhs: Self) -> Self::Output {
         let mut result = self;
         result /= rhs;
         result
@@ -227,7 +227,7 @@ impl<const N: usize> Div<Point<N>> for Point<N> {
 }
 
 impl<const N: usize> Div<f32> for Point<N> {
-    type Output = Point<N>;
+    type Output = Self;
     fn div(self, rhs: f32) -> Self::Output {
         let mut result = self;
         result /= rhs;
@@ -274,24 +274,23 @@ impl<'a, const N: usize> Point<N> {
     }
 
     pub fn avg(points: impl IntoIterator<Item = Self>) -> Option<Self> {
-        let mut points = points.into_iter();
-        let first = points.next()?;
-        let (sum, cnt) = points.fold((first, 1), |(sum, cnt), p| (sum + p, cnt + 1));
-        Some(sum / cnt as f32)
+        points
+            .into_iter()
+            .map(|p| (p, 1.0f32))
+            .reduce(|a, b| (a.0 + b.0, a.1 + b.1))
+            .map(|(p, cnt)| p / cnt)
     }
 
     pub fn bounding_box(points: impl IntoIterator<Item = Self>) -> Option<BoundingBox<N>> {
-        let mut points = points.into_iter();
-        let first = points.next()?;
-        Some(
-            points
-                .fold((first, first), |(mut low, mut high), point| {
-                    iter::zip(&mut low, point).for_each(|(a, b)| *a = a.min(b));
-                    iter::zip(&mut high, point).for_each(|(a, b)| *a = a.max(b));
-                    (low, high)
-                })
-                .into(),
-        )
+        points
+            .into_iter()
+            .map(|p| (p, p))
+            .reduce(|mut a, b| {
+                iter::zip(&mut a.0, b.0).for_each(|(a, b)| *a = a.min(b));
+                iter::zip(&mut a.1, b.1).for_each(|(a, b)| *a = a.max(b));
+                a
+            })
+            .map(Into::into)
     }
 }
 
@@ -338,7 +337,7 @@ impl Point2 {
         if angle >= 0.0 {
             angle
         } else {
-            angle + 2.0 * std::f32::consts::PI
+            2.0f32.mul_add(std::f32::consts::PI, angle)
         }
     }
 }

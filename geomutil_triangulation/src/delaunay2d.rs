@@ -1,13 +1,13 @@
-use geomutil_util::{Point2, Triangle2};
+use geomutil_util::{Point2, Triangle};
 use std::collections::HashMap;
 
 pub struct Triangulation2 {
-    pub bounding_triangle: Triangle2,
-    pub triangles: Vec<Triangle2>,
+    pub bounding_triangle: Triangle,
+    pub triangles: Vec<Triangle>,
 }
 
 impl Triangulation2 {
-    fn new(bounding_triangle: Triangle2) -> Self {
+    fn new(bounding_triangle: Triangle) -> Self {
         Self {
             bounding_triangle: bounding_triangle.clone(),
             triangles: vec![bounding_triangle],
@@ -31,7 +31,7 @@ impl Triangulation2 {
         let new_triangles = triangles_to_add_edges
             .into_iter()
             .filter(|(_, c)| c.eq(&1))
-            .filter_map(|(e, _)| Triangle2::new(e.a, e.b, point));
+            .filter_map(|(e, _)| Triangle::new(e.a, e.b, point));
         self.triangles.extend(new_triangles);
     }
 
@@ -44,14 +44,14 @@ impl Triangulation2 {
     }
 }
 
-fn get_bounding_triangle(points: impl IntoIterator<Item = Point2>) -> Option<Triangle2> {
+fn get_bounding_triangle(points: impl IntoIterator<Item = Point2>) -> Option<Triangle> {
     let bbox = Point2::bounding_box(points)?;
     let d = bbox.dimensions();
     let d = 3.0 * d.x.max(d.y);
     let center = bbox.center();
-    Triangle2::new(
-        Point2::from([center.x - 0.866 * d, center.y - 0.5 * d]),
-        Point2::from([center.x + 0.866 * d, center.y - 0.5 * d]),
+    Triangle::new(
+        Point2::from([0.866f32.mul_add(-d, center.x), 0.5f32.mul_add(-d, center.y)]),
+        Point2::from([0.866f32.mul_add(d, center.x), 0.5f32.mul_add(-d, center.y)]),
         Point2::from([center.x, center.y + d]),
     )
 }

@@ -10,22 +10,27 @@ pub struct Edge2 {
 }
 
 impl Edge2 {
-    pub fn new(a: Point2, b: Point2) -> Self {
+    #[must_use]
+    pub const fn new(a: Point2, b: Point2) -> Self {
         Self { a, b }
     }
 
-    pub fn canonical(&self) -> Edge2 {
-        Edge2::new(self.a.min(self.b), self.a.max(self.b))
+    #[must_use]
+    pub fn canonical(&self) -> Self {
+        Self::new(self.a.min(self.b), self.a.max(self.b))
     }
 
-    pub fn flip(&self) -> Edge2 {
-        Edge2::new(self.b, self.a)
+    #[must_use]
+    pub const fn flip(&self) -> Self {
+        Self::new(self.b, self.a)
     }
 
+    #[must_use]
     pub fn length(&self) -> f32 {
         self.a.distance(self.b)
     }
 
+    #[must_use]
     pub fn length_squared(&self) -> f32 {
         self.a.distance_squared(self.b)
     }

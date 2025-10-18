@@ -1,17 +1,21 @@
-use crate::Point2;
 use serde::{Deserialize, Serialize};
+
+use crate::point::Point;
 
 #[derive(
     Debug, Default, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, Hash, Serialize, Deserialize,
 )]
-pub struct Edge2 {
-    pub a: Point2,
-    pub b: Point2,
+pub struct Edge<const N: usize> {
+    pub a: Point<N>,
+    pub b: Point<N>,
 }
 
-impl Edge2 {
+pub type Edge2 = Edge<2>;
+pub type Edge3 = Edge<3>;
+
+impl<const N: usize> Edge<N> {
     #[must_use]
-    pub const fn new(a: Point2, b: Point2) -> Self {
+    pub const fn new(a: Point<N>, b: Point<N>) -> Self {
         Self { a, b }
     }
 

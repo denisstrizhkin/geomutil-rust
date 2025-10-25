@@ -1,21 +1,19 @@
 use serde::{Deserialize, Serialize};
 
-use crate::point::Point;
+use crate::{point::Point, scalar::Float};
 
-#[derive(
-    Debug, Default, Clone, Copy, Eq, PartialEq, PartialOrd, Ord, Hash, Serialize, Deserialize,
-)]
-pub struct Edge<const N: usize> {
-    pub a: Point<N>,
-    pub b: Point<N>,
+#[derive(Debug, Default, Clone, Copy, PartialEq, PartialOrd, Serialize, Deserialize)]
+pub struct Edge<const N: usize, T: Float> {
+    pub a: Point<N, T>,
+    pub b: Point<N, T>,
 }
 
-pub type Edge2 = Edge<2>;
-pub type Edge3 = Edge<3>;
+pub type Edge2<T> = Edge<2, T>;
+pub type Edge3<T> = Edge<3, T>;
 
-impl<const N: usize> Edge<N> {
+impl<const N: usize, T: Float> Edge<N, T> {
     #[must_use]
-    pub const fn new(a: Point<N>, b: Point<N>) -> Self {
+    pub const fn new(a: Point<N, T>, b: Point<N, T>) -> Self {
         Self { a, b }
     }
 
@@ -30,12 +28,12 @@ impl<const N: usize> Edge<N> {
     }
 
     #[must_use]
-    pub fn length(&self) -> f32 {
+    pub fn length(&self) -> T {
         self.a.distance(self.b)
     }
 
     #[must_use]
-    pub fn length_squared(&self) -> f32 {
+    pub fn length_squared(&self) -> T {
         self.a.distance_squared(self.b)
     }
 }

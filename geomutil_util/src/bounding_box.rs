@@ -1,55 +1,47 @@
 use std::iter;
 
-use crate::point::Point;
+use crate::{point::Point, scalar::Float};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct BoundingBox<const N: usize> {
-    min: Point<N>,
-    max: Point<N>,
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct BoundingBox<const N: usize, T: Float> {
+    pub lower: Point<N, T>,
+    pub upper: Point<N, T>,
 }
 
-pub type BoundingBox2 = BoundingBox<2>;
-pub type BoundingBox3 = BoundingBox<3>;
+pub type BoundingBox2<T> = BoundingBox<2, T>;
+pub type BoundingBox3<T> = BoundingBox<3, T>;
 
-impl<const N: usize> BoundingBox<N> {
+impl<const N: usize, T: Float> BoundingBox<N, T> {
     #[must_use]
-    pub fn new(a: Point<N>, b: Point<N>) -> Self {
+    pub fn new(a: Point<N, T>, b: Point<N, T>) -> Self {
         Point::bounding_box([a, b]).unwrap()
     }
 
     #[must_use]
-    pub const fn lower(&self) -> Point<N> {
-        self.min
+    pub fn dimensions(&self) -> Point<N, T> {
+        self.upper - self.lower
     }
 
     #[must_use]
-    pub const fn upper(&self) -> Point<N> {
-        self.max
+    pub fn center(&self) -> Point<N, T> {
+        Point::avg([self.lower, self.upper]).unwrap()
     }
 
     #[must_use]
-    pub fn dimensions(&self) -> Point<N> {
-        self.max - self.min
+    pub fn volume(&self) -> T {
+        self.dimensions()
+            .into_iter()
+            .fold(T::from(1.0), |vol, x| vol * x)
     }
 
     #[must_use]
-    pub fn center(&self) -> Point<N> {
-        Point::avg([self.min, self.max]).unwrap()
-    }
-
-    #[must_use]
-    pub fn volume(&self) -> f32 {
-        self.dimensions().into_iter().fold(1.0, |vol, x| vol * x)
-    }
-
-    #[must_use]
-    pub fn contains(&self, p: Point<N>) -> bool {
-        iter::zip(p, iter::zip(self.min, self.max)).all(|(x, (lo, hi))| x >= lo && x <= hi)
+    pub fn contains(&self, p: Point<N, T>) -> bool {
+        iter::zip(p, iter::zip(self.lower, self.upper)).all(|(x, (lo, hi))| x >= lo && x <= hi)
     }
 }
 
-impl<const N: usize> From<(Point<N>, Point<N>)> for BoundingBox<N> {
-    fn from(value: (Point<N>, Point<N>)) -> Self {
+impl<const N: usize, T: Float> From<(Point<N, T>, Point<N, T>)> for BoundingBox<N, T> {
+    fn from(value: (Point<N, T>, Point<N, T>)) -> Self {
         Self::new(value.0, value.1)
     }
 }

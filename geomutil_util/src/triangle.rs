@@ -1,44 +1,37 @@
-use crate::{EPS, Edge2, Point2};
+use crate::{edge::Edge2, point::Point2, scalar::Float};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Triangle {
-    pub a: Point2,
-    pub b: Point2,
-    pub c: Point2,
-    circumcenter: Point2,
-    circumradius_squared: f32,
+pub struct Triangle<T: Float> {
+    pub a: Point2<T>,
+    pub b: Point2<T>,
+    pub c: Point2<T>,
+    circumcenter: Point2<T>,
+    circumradius_squared: T,
 }
 
-impl Eq for Triangle {}
-
-impl Triangle {
+impl<T: Float> Triangle<T> {
     #[must_use]
-    pub fn new(a: Point2, b: Point2, c: Point2) -> Option<Self> {
+    pub fn new(a: Point2<T>, b: Point2<T>, c: Point2<T>) -> Self {
         let mut t = Self {
             a,
             b,
             c,
             ..Default::default()
         };
-        t.circumcenter = t.calc_circumcenter()?;
+        t.circumcenter = t.calc_circumcenter();
         t.circumradius_squared = t.calc_circumradius_squared();
-        Some(t)
+        t
     }
 
     #[must_use]
-    fn calc_circumcenter(&self) -> Option<Point2> {
+    fn calc_circumcenter(&self) -> Point2<T> {
         let a = self.a;
         let b = self.b;
         let c = self.c;
-        let d = 2.0
+        let d = T::from(2.0)
             * a.x
                 .mul_add(b.y - c.y, b.x.mul_add(c.y - a.y, c.x * (a.y - b.y)));
-
-        if d.abs() == 0.0 {
-            return None;
-        }
-
         let a_len_sq = a.length_squared();
         let b_len_sq = b.length_squared();
         let c_len_sq = c.length_squared();
@@ -51,43 +44,42 @@ impl Triangle {
             c.x - b.x,
             b_len_sq.mul_add(a.x - c.x, c_len_sq * (b.x - a.x)),
         )) / d;
-
-        Some(Point2::from([ux, uy]))
+        Point2::from([ux, uy])
     }
 
     #[must_use]
-    pub const fn circumcenter(&self) -> Point2 {
+    pub const fn circumcenter(&self) -> Point2<T> {
         self.circumcenter
     }
 
     #[must_use]
-    fn calc_circumradius_squared(&self) -> f32 {
+    fn calc_circumradius_squared(&self) -> T {
         self.circumcenter.distance_squared(self.a)
     }
 
     #[must_use]
-    pub const fn circumcircle_radius_squared(&self) -> f32 {
+    pub const fn circumcircle_radius_squared(&self) -> T {
         self.circumradius_squared
     }
 
     #[must_use]
-    pub fn circumcircle_radius(&self) -> f32 {
+    pub fn circumcircle_radius(&self) -> T {
         self.circumradius_squared.sqrt()
     }
 
     #[must_use]
-    pub fn is_inside_circumcircle(&self, p: Point2) -> bool {
+    pub fn is_inside_circumcircle(&self, p: Point2<T>) -> bool {
         let d = self.circumcenter.distance_squared(p);
-        d <= self.circumradius_squared + EPS
+        d <= self.circumradius_squared
     }
 
     #[must_use]
-    pub fn has_point(&self, p: &Point2) -> bool {
+    pub fn has_point(&self, p: &Point2<T>) -> bool {
         self.a.eq(p) || self.b.eq(p) || self.c.eq(p)
     }
 
     #[must_use]
-    pub const fn edges(&self) -> [Edge2; 3] {
+    pub const fn edges(&self) -> [Edge2<T>; 3] {
         [
             Edge2::new(self.a, self.b),
             Edge2::new(self.b, self.c),
@@ -96,17 +88,17 @@ impl Triangle {
     }
 
     #[must_use]
-    pub fn perimeter(&self) -> f32 {
+    pub fn perimeter(&self) -> T {
         self.edges().iter().map(Edge2::length).sum()
     }
 
     #[must_use]
-    pub fn area(&self) -> f32 {
+    pub fn area(&self) -> T {
         let edges = self.edges();
         let a = edges[0].length();
         let b = edges[1].length();
         let c = edges[2].length();
-        let s = 0.5f32 * (a + b + c);
+        let s = T::from(0.5) * (a + b + c);
         (s * (s - a) * (s - b) * (s - c)).sqrt()
     }
 }

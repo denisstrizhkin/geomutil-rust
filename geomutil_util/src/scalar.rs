@@ -31,27 +31,49 @@ pub trait Float:
     const E: Self;
     const NAN: Self;
 
+    #[must_use]
     fn abs(self) -> Self;
+    #[must_use]
     fn acos(self) -> Self;
+    #[must_use]
     fn acosh(self) -> Self;
+    #[must_use]
     fn asin(self) -> Self;
+    #[must_use]
     fn asinh(self) -> Self;
+    #[must_use]
     fn atan(self) -> Self;
+    #[must_use]
     fn atan2(self, other: Self) -> Self;
+    #[must_use]
     fn atanh(self) -> Self;
+    #[must_use]
     fn cos(self) -> Self;
+    #[must_use]
     fn from(value: f64) -> Self;
+    #[must_use]
     fn is_nan(self) -> bool;
+    #[must_use]
     fn one() -> Self;
+    #[must_use]
     fn max(self, other: Self) -> Self;
+    #[must_use]
     fn min(self, other: Self) -> Self;
+    #[must_use]
     fn mul_add(self, a: Self, b: Self) -> Self;
+    #[must_use]
     fn powi(self, n: i32) -> Self;
+    #[must_use]
     fn sin(self) -> Self;
+    #[must_use]
     fn sqrt(self) -> Self;
+    #[must_use]
     fn total_cmp(&self, other: &Self) -> Ordering;
+    #[must_use]
     fn to_degrees(self) -> Self;
+    #[must_use]
     fn to_radians(self) -> Self;
+    #[must_use]
     fn zero() -> Self;
 }
 

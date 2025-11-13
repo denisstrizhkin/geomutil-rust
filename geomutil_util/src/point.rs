@@ -220,6 +220,10 @@ impl<const N: usize, T: Float> Point<N, T> {
         Self::from(array::from_fn(|_| T::one()))
     }
 
+    pub fn dot(self, other: Self) -> T {
+        (self * other).into_iter().sum()
+    }
+
     pub fn total_cmp(self, other: &Self) -> Ordering {
         iter::zip(self, other).fold(Ordering::Equal, |ord, (a, b)| match ord {
             Ordering::Equal => a.total_cmp(b),
@@ -413,6 +417,13 @@ mod tests {
         assert_eq!(c.coords, [4.0, 6.0, 8.0]);
         let c = a + b;
         assert_eq!(c.coords, [5.5, 8.5, 11.5]);
+    }
+
+    #[test]
+    fn test_dot() {
+        let a = Point3::from([2.0, 7.0, 1.0]);
+        let b = Point3::from([8.0, 2.0, 8.0]);
+        assert_eq!(a.dot(b), 38.0);
     }
 
     #[test]
